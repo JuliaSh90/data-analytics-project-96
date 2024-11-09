@@ -69,7 +69,7 @@ with tab as (
     group by v_date
     order by v_date
 ),
-    
+
 tab2 as (
     to_char(l.created_at, 'yyyy-mm-dd') as l_date,
     count(l.lead_id) as lead_count
@@ -77,7 +77,7 @@ from leads as l
 group by 1
 order by 1
 )
-    
+
 select
     tab2.l_date as datee,
     round(((tab2.lead_count * 100.00) / tab.click_count), 2) as conversionn
@@ -90,71 +90,71 @@ with tab as (
     select count(l.lead_id) as total_leads
     from leads as l
 ),
-    
+
 tab1 as (
     select count(l.lead_id) as paid_lead
     from leads as l
     where amount != 0 or l.status_id = 142
 )
-    
-select round(((tab1.paid_lead * 100.00) / tab.total_leads), 2) as conversion
+ 
+select round(((tab1.paid_lead * 100.00) / tab.total_leads), 2) as conversionn
 from tab1
 cross join tab;
 
 /*Затраты на каждый канал (с разбивкой по дням)*/
 select
-    to_char(va.campaign_date, 'yyyy-mm-dd'),
+    to_char(va.campaign_date, 'yyyy-mm-dd') as campaign_datee,
     va.utm_source,
     va.utm_medium,
     va.utm_campaign,
     sum(va.daily_spent) as daily_spent
 from vk_ads as va
-group by 1, 2, 3, 4
+group by campaign_datee, va.utm_source, va.utm_medium, va.utm_campaign
 union
 select
-    to_char(ya.campaign_date, 'yyyy-mm-dd'),
+    to_char(ya.campaign_date, 'yyyy-mm-dd') as campaign_datee,
     ya.utm_source,
     ya.utm_medium,
     ya.utm_campaign,
     sum(ya.daily_spent) as daily_spent
 from ya_ads as ya
-group by 1, 2, 3, 4
-order by 1, 2, 3, 4;
+group by campaign_datee, ya.utm_source, ya.utm_medium, ya.utm_campaign
+order by campaign_datee, ya.utm_source, ya.utm_medium, ya.utm_campaign;
 
 
 /*Окупаемость затрат на каналы*/
 with tab as (
-select
-    to_char(l.created_at, 'yyyy-mm-dd') as date,
-    s.source,
-    s.medium,
-    s.campaign,
-    sum(l.amount) as income
-from leads as l
-left join sessions s
-on s.visitor_id = l.visitor_id
-group by 1, 2, 3, 4
-order by 1, 2, 3, 4
-), 
+    select
+        s.source,
+        s.medium,
+        s.campaign,
+        to_char(l.created_at, 'yyyy-mm-dd') as datee,
+        sum(l.amount) as income
+    from leads as l
+    left join sessions as s
+        on s.visitor_id = l.visitor_id
+    group by s.source, s.medium, s.campaign, datee
+    order by s.source, s.medium, s.campaign, datee
+),
 tab1 as (
-select
-    to_char(va.campaign_date, 'yyyy-mm-dd') as date1,
-    va.utm_source,
-    va.utm_medium,
-    va.utm_campaign,
-    sum(va.daily_spent) as daily_spent
-from vk_ads as va
-group by 1, 2, 3, 4
-union
-select
-    to_char(ya.campaign_date, 'yyyy-mm-dd'),
-    ya.utm_source as source,
-    ya.utm_medium,
-    ya.utm_campaign,
-    sum(ya.daily_spent) as daily_spent
-from ya_ads as ya
-group by 1, 2, 3, 4
-order by 1, 2, 3, 4
+    select
+        to_char(va.campaign_date, 'yyyy-mm-dd') as date1,
+        va.utm_source,
+        va.utm_medium,
+        va.utm_campaign,
+        sum(va.daily_spent) as daily_spent
+    from vk_ads as va
+    group by date1, va.utm_source, va.utm_medium, va.utm_campaign
+    union
+    select
+        to_char(ya.campaign_date, 'yyyy-mm-dd') as date1,
+        ya.utm_source,
+        ya.utm_medium,
+        ya.utm_campaign,
+        sum(ya.daily_spent) as daily_spent
+    from ya_ads as ya
+    group by date1, ya.utm_source, ya.utm_medium, ya.utm_campaign
+    order by date1, ya.utm_source, ya.utm_medium, ya.utm_campaign
 )
 select
     tab.date,
@@ -164,12 +164,12 @@ select
     sum(((tab.income - tab1.daily_spent) / tab1.daily_spent) * 100.00) as roi
 from tab
 inner join tab1
-on
-tab.date = tab1.date1
-and tab.source = tab1.utm_source
-and tab.medium = tab1.utm_medium
-and tab.campaign = tab1.utm_campaign
-group by 1, 2, 3, 4;
+    on
+        tab.date = tab1.date1
+        and tab.source = tab1.utm_source
+        and tab.medium = tab1.utm_medium
+        and tab.campaign = tab1.utm_campaign
+group by tab.date, tab.source, tab.medium, tab.campaign,;
 
 
 /*Расчет метрики cpu, cpl, cppu, roi по utm_source*/
@@ -250,26 +250,28 @@ tab2 as (
 )
 ,
 tab3 as (
-select
-    tab2.visit_date as visit_date,
-    tab2.visitors_count,
-    tab2.source as utm_source,
-    tab2.medium as utm_medium,
-    tab2.campaign as utm_campaign,
-    tab.total_cost,
-    tab2.leads_count,
-    tab2.purchases_count,
-    tab2.revenue
-from tab2
-left join tab
-    on
-        tab2.medium = tab.utm_medium
-        and tab2.source = tab.utm_source
-        and tab2.campaign = tab.utm_campaign
-        and tab2.visit_date = tab.campaign_date
-where tab2.medium != 'organic'
-and tab2.source = 'vk' or tab2.source = 'yandex'
-group by 1, 2, 3, 4, 5, 6, 7, 8, 9
+    select
+        tab2.visit_date as visit_date,
+        tab2.visitors_count,
+        tab2.source as utm_source,
+        tab2.medium as utm_medium,
+        tab2.campaign as utm_campaign,
+        tab.total_cost,
+        tab2.leads_count,
+        tab2.purchases_count,
+        tab2.revenue
+    from tab2
+    left join tab
+        on
+            tab2.medium = tab.utm_medium
+            and tab2.source = tab.utm_source
+            and tab2.campaign = tab.utm_campaign
+            and tab2.visit_date = tab.campaign_date
+    where tab2.medium != 'organic'
+
+    and tab2.source = 'vk' or tab2.source = 'yandex'
+group by tab2.visit_date, tab2.visitors_count, tab2.source, tab2.medium, tab2.campaign, tab.total_cost,
+        tab2.leads_count, tab2.purchases_count, tab2.revenue
 order by
     tab2.revenue desc nulls last,
     tab2.visit_date asc,
