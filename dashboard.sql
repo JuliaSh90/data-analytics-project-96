@@ -1,74 +1,75 @@
 /*Уникальное кол-во посетителей сайта*/
 select
     count(distinct s.visitor_id) as visitors_count,
-    to_char(s.visit_date, 'yyyy-mm-dd') as date
+    to_char(s.visit_date, 'yyyy-mm-dd') as datee
 from sessions as s
-group by date
-order by date;
+group by datee
+order by datee;
 
 /*Каналы, которые приводят на сайт посетителей (разбивка по дням и каналам)*/
 select
-    count(distinct s.visitor_id) as visitors_count,
     s.source,
     s.medium,
     s.campaign,
-    to_char(s.visit_date, 'yyyy-mm-dd') as date
+    count(distinct s.visitor_id) as visitors_count,
+    to_char(s.visit_date, 'yyyy-mm-dd') as datee
 from sessions as s
 group by
-date,
-s.source,
-s.medium,
-s.campaign
-order by date;
+    datee,
+    s.source,
+    s.medium,
+    s.campaign
+order by datee;
 
 
 /*Каналы, которые приводят на сайт посетителей (разбивка по неделям и каналам)*/
 select
-    count(distinct s.visitor_id) as visitors_count,
     s.source,
     s.medium,
     s.campaign,
-    extract(week from s.visit_date) as week
+    count(distinct s.visitor_id) as visitors_count,
+    extract(week from s.visit_date) as weekk
 from sessions as s
 group by
-week,
-s.source,
-s.medium,
-s.campaign
-order by week;
+    weekk,
+    s.source,
+    s.medium,
+    s.campaign
+order by weekk;
 
 /*Каналы, которые приводят на сайт посетителей (разбивка по месяцу и каналам)*/
 select
-    count(distinct s.visitor_id) as visitors_count,
     s.source,
     s.medium,
     s.campaign,
-    to_char(s.visit_date, 'yyyy-mm') as month
+    count(distinct s.visitor_id) as visitors_count,
+    to_char(s.visit_date, 'yyyy-mm') as monthh
 from sessions as s
 group by
-month,
-s.source,
-s.medium,
-s.campaign
-order by month;
+    monthh,
+    s.source,
+    s.medium,
+    s.campaign
+order by monthh;
 
 /*Количество лидов (разбивка по дате)*/
 select
-    to_char(l.created_at, 'yyyy-mm-dd') as date,
+    to_char(l.created_at, 'yyyy-mm-dd') as datee,
     count(l.lead_id) as lead_count
 from leads as l
-group by date
-order by date;
+group by datee
+order by datee;
 
 /*Конверсия из клика в лид*/
 with tab as (
-select
-    to_char(s.visit_date, 'yyyy-mm-dd') as v_date,
-    count(s.visitor_id) as click_count
-from sessions as s
-group by 1
-order by 1
-), 
+    select
+        to_char(s.visit_date, 'yyyy-mm-dd') as v_date,
+        count(s.visitor_id) as click_count
+    from sessions as s
+    group by v_date
+    order by v_date
+),
+    
 tab2 as (
     to_char(l.created_at, 'yyyy-mm-dd') as l_date,
     count(l.lead_id) as lead_count
@@ -76,25 +77,27 @@ from leads as l
 group by 1
 order by 1
 )
+    
 select
-    tab2.l_date as date,
-    round(((tab2.lead_count * 100.00) / tab.click_count), 2) as conversion
+    tab2.l_date as datee,
+    round(((tab2.lead_count * 100.00) / tab.click_count), 2) as conversionn
 from tab2
 inner join tab
-on tab2.l_date = tab.v_date;
+    on tab2.l_date = tab.v_date;
 
 /*Конверсия из лида в оплату*/
 with tab as (
-select count(l.lead_id) as total_leads
-from leads as l
-), 
+    select count(l.lead_id) as total_leads
+    from leads as l
+),
+    
 tab1 as (
-select count(l.lead_id) as paid_lead
-from leads as l
-where amount != 0 or l.status_id = 142
+    select count(l.lead_id) as paid_lead
+    from leads as l
+    where amount != 0 or l.status_id = 142
 )
-select
-    round(((tab1.paid_lead * 100.00) / tab.total_leads), 2) as conversion
+    
+select round(((tab1.paid_lead * 100.00) / tab.total_leads), 2) as conversion
 from tab1
 cross join tab;
 
