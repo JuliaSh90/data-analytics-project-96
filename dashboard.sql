@@ -96,7 +96,7 @@ tab1 as (
     from leads as l
     where amount != 0 or l.status_id = 142
 )
- 
+
 select round(((tab1.paid_lead * 100.00) / tab.total_leads), 2) as conversionn
 from tab1
 cross join tab;
@@ -169,7 +169,7 @@ inner join tab1
         and tab.source = tab1.utm_source
         and tab.medium = tab1.utm_medium
         and tab.campaign = tab1.utm_campaign
-group by tab.date, tab.source, tab.medium, tab.campaign,;
+group by tab.date, tab.source, tab.medium, tab.campaign;
 
 
 /*Расчет метрики cpu, cpl, cppu, roi по utm_source*/
@@ -267,18 +267,18 @@ tab3 as (
             and tab2.source = tab.utm_source
             and tab2.campaign = tab.utm_campaign
             and tab2.visit_date = tab.campaign_date
-    where tab2.medium != 'organic'
+        where tab2.medium != 'organic'
 
-    and tab2.source = 'vk' or tab2.source = 'yandex'
+        and tab2.source = 'vk' or tab2.source = 'yandex'
 group by tab2.visit_date, tab2.visitors_count, tab2.source, tab2.medium, tab2.campaign, tab.total_cost,
         tab2.leads_count, tab2.purchases_count, tab2.revenue
-order by
-    tab2.revenue desc nulls last,
-    tab2.visit_date asc,
-    tab2.visitors_count desc,
-    utm_source asc,
-    utm_medium asc,
-    utm_campaign asc
+    order by
+        tab2.revenue desc nulls last,
+        tab2.visit_date asc,
+        tab2.visitors_count desc,
+        utm_source asc,
+        utm_medium asc,
+        utm_campaign asc
 )
 select
     tab3.utm_source,
@@ -286,9 +286,9 @@ select
     case when sum(tab3.leads_count) = 0 or sum(tab3.leads_count) is null then 0
         else round(sum(tab3.total_cost) / sum(tab3.leads_count), 1) end as cpl,
     case when sum(tab3.purchases_count) = 0
-    or sum(tab3.purchases_count) is null then 0
+        or sum(tab3.purchases_count) is null then 0
         else round(sum(tab3.total_cost) / sum(tab3.purchases_count), 1)
-        end as cppu,
+    end as cppu,
     round((sum(tab3.revenue) - sum(tab3.total_cost)) /
     sum(tab3.total_cost) * 100, 1) as roi
 from tab3
@@ -373,27 +373,28 @@ tab2 as (
 )
 ,
 tab3 as (
-select
-    tab2.visit_date as visit_date,
-    tab2.visitors_count,
-    tab2.source as utm_source,
-    tab2.medium as utm_medium,
-    tab2.campaign as utm_campaign,
-    tab.total_cost,
-    tab2.leads_count,
-    tab2.purchases_count,
-    tab2.revenue
-from tab2
-left join tab
-    on
-        tab2.medium = tab.utm_medium
-        and tab2.source = tab.utm_source
-        and tab2.campaign = tab.utm_campaign
-        and tab2.visit_date = tab.campaign_date
-where tab2.medium != 'organic'
-and tab2.source = 'vk' or tab2.source = 'yandex'
-group by 1, 2, 3, 4, 5, 6, 7, 8, 9
-order by
+    select
+        tab2.visit_date as visit_date,
+        tab2.visitors_count,
+        tab2.source as utm_source,
+        tab2.medium as utm_medium,
+        tab2.campaign as utm_campaign,
+        tab.total_cost,
+        tab2.leads_count,
+        tab2.purchases_count,
+        tab2.revenue
+    from tab2
+    left join tab
+        on
+            tab2.medium = tab.utm_medium
+            and tab2.source = tab.utm_source
+            and tab2.campaign = tab.utm_campaign
+            and tab2.visit_date = tab.campaign_date
+    where tab2.medium != 'organic'
+    and tab2.source = 'vk' or tab2.source = 'yandex'
+    group by tab2.visit_date, tab2.visitors_count, tab2.source, tab2.medium, tab2.campaign, tab.total_cost, 
+             tab2.leads_count, tab2.purchases_count,tab2.revenue
+    orde r by
     tab2.revenue desc nulls last,
     tab2.visit_date asc,
     tab2.visitors_count desc,
@@ -417,9 +418,10 @@ select
         else round(sum(tab3.total_cost) /
         sum(tab3.purchases_count), 1) end as cppu,
     round((sum(tab3.revenue) - sum(tab3.total_cost)) /
-    sum(tab3.total_cost) * 100, 1) as roi
-from tab3
-group by 1, 2, 3
-order by 1, 2, 3, 4 desc, 5 desc, 6 desc, 7 desc
+        sum(tab3.total_cost) * 100, 1) as roi
+    from tab3
+    group by tab3.utm_source, tab3.utm_medium, tab3.utm_campaign,
+    order by tab3.utm_source, tab3.utm_medium, tab3.utm_campaign, cpu desc, cpl desc, cppu desc, roi desc
 )
+    
 select * from tab4;
