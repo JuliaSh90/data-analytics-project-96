@@ -71,7 +71,6 @@ with tab as (
 ),
 
 tab2 as (
-    l.created_at as created_at,
     count(l.lead_id) as lead_count
 from leads as l
 group by 1
