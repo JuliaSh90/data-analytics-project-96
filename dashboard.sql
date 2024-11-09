@@ -71,7 +71,7 @@ with tab as (
 ),
 
 tab2 as (
-    count(l.lead_id) as lead_count
+    count(l.lead_id) as leads_count
 from leads as l
 group by 1
 order by 1
