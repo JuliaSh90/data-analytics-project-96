@@ -71,7 +71,7 @@ with tab as (
 ),
 
 tab2 as (
-    to_char(l.created_at, 'yyyy-mm-dd') as l_date,
+    to_char(l.created_at, 'yyyy-mm-dd') as datee,
     count(l.lead_id) as lead_count
 from leads as l
 group by 1
@@ -94,7 +94,7 @@ with tab as (
 tab1 as (
     select count(l.lead_id) as paid_lead
     from leads as l
-    where amount != 0 or l.status_id = 142
+    where l.status_id = 142
 )
 
 select round(((tab1.paid_lead * 100.00) / tab.total_leads), 2) as conversionn
@@ -136,6 +136,7 @@ with tab as (
     group by s.source, s.medium, s.campaign, datee
     order by s.source, s.medium, s.campaign, datee
 ),
+
 tab1 as (
     select
         to_char(va.campaign_date, 'yyyy-mm-dd') as date1,
@@ -156,6 +157,7 @@ tab1 as (
     group by date1, ya.utm_source, ya.utm_medium, ya.utm_campaign
     order by date1, ya.utm_source, ya.utm_medium, ya.utm_campaign
 )
+
 select
     tab.date,
     tab.source,
@@ -267,11 +269,13 @@ tab3 as (
             and tab2.source = tab.utm_source
             and tab2.campaign = tab.utm_campaign
             and tab2.visit_date = tab.campaign_date
+    
         where tab2.medium != 'organic'
 
         and tab2.source = 'vk' or tab2.source = 'yandex'
-group by tab2.visit_date, tab2.visitors_count, tab2.source, tab2.medium, tab2.campaign, tab.total_cost,
-        tab2.leads_count, tab2.purchases_count, tab2.revenue
+        group by tab2.visit_date, tab2.visitors_count, tab2.source,
+                 tab2.medium, tab2.campaign, tab.total_cost,
+                 tab2.leads_count, tab2.purchases_count, tab2.revenue
     order by
         tab2.revenue desc nulls last,
         tab2.visit_date asc,
@@ -280,6 +284,7 @@ group by tab2.visit_date, tab2.visitors_count, tab2.source, tab2.medium, tab2.ca
         utm_medium asc,
         utm_campaign asc
 )
+
 select
     tab3.utm_source,
     round(sum(tab3.total_cost) / sum(tab3.visitors_count), 1) as cpu,
