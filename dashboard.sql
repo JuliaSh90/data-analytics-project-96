@@ -60,30 +60,6 @@ from leads as l
 group by datee
 order by datee;
 
-/*Конверсия из клика в лид*/
-with tab as (
-    select
-        to_char(s.visit_date, 'yyyy-mm-dd') as v_date,
-        count(s.visitor_id) as click_count
-    from sessions as s
-    group by v_date
-    order by v_date
-),
-
-tab2 as (
-    count(l.lead_id) as leads_count
-from leads as l
-group by 1
-order by 1
-)
-
-select
-    tab2.l_date as datee,
-    round(((tab2.lead_count * 100.00) / tab.click_count), 2) as conversionn
-from tab2
-inner join tab
-    on tab2.l_date = tab.v_date;
-
 /*Конверсия из лида в оплату*/
 with tab as (
     select count(l.lead_id) as total_leads
