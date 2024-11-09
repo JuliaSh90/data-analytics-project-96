@@ -33,6 +33,3 @@ order by
     t.visit_date asc, t.utm_source asc,
     t.utm_medium asc, t.utm_campaign asc
 limit 10;
-        
- 
-
